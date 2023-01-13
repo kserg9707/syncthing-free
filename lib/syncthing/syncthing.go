@@ -36,7 +36,6 @@ import (
 	"github.com/syncthing/syncthing/lib/model"
 	"github.com/syncthing/syncthing/lib/osutil"
 	"github.com/syncthing/syncthing/lib/protocol"
-	"github.com/syncthing/syncthing/lib/rand"
 	"github.com/syncthing/syncthing/lib/sha256"
 	"github.com/syncthing/syncthing/lib/svcutil"
 	"github.com/syncthing/syncthing/lib/tlsutil"
@@ -284,22 +283,6 @@ func (a *App) startup() error {
 
 	a.mainService.Add(discoveryManager)
 	a.mainService.Add(connectionsService)
-
-	a.cfg.Modify(func(cfg *config.Configuration) {
-		// Candidate builds always run with usage reporting.
-		if build.IsCandidate {
-			l.Infoln("Anonymous usage reporting is always enabled for candidate releases.")
-			if cfg.Options.URAccepted != ur.Version {
-				cfg.Options.URAccepted = ur.Version
-				// Unique ID will be set and config saved below if necessary.
-			}
-		}
-
-		// If we are going to do usage reporting, ensure we have a valid unique ID.
-		if cfg.Options.URAccepted > 0 && cfg.Options.URUniqueID == "" {
-			cfg.Options.URUniqueID = rand.String(8)
-		}
-	})
 
 	usageReportingSvc := ur.New(a.cfg, m, connectionsService, a.opts.NoUpgrade)
 	a.mainService.Add(usageReportingSvc)

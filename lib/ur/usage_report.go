@@ -9,11 +9,8 @@ package ur
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
-	"encoding/json"
 	"math/rand"
 	"net"
-	"net/http"
 	"runtime"
 	"sort"
 	"strings"
@@ -24,7 +21,6 @@ import (
 	"github.com/syncthing/syncthing/lib/config"
 	"github.com/syncthing/syncthing/lib/connections"
 	"github.com/syncthing/syncthing/lib/db"
-	"github.com/syncthing/syncthing/lib/dialer"
 	"github.com/syncthing/syncthing/lib/protocol"
 	"github.com/syncthing/syncthing/lib/scanner"
 	"github.com/syncthing/syncthing/lib/upgrade"
@@ -333,34 +329,6 @@ func (*Service) UptimeS() int {
 }
 
 func (s *Service) sendUsageReport(ctx context.Context) error {
-	d, err := s.ReportData(ctx)
-	if err != nil {
-		return err
-	}
-	var b bytes.Buffer
-	if err := json.NewEncoder(&b).Encode(d); err != nil {
-		return err
-	}
-
-	client := &http.Client{
-		Transport: &http.Transport{
-			DialContext: dialer.DialContext,
-			Proxy:       http.ProxyFromEnvironment,
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: s.cfg.Options().URPostInsecurely,
-			},
-		},
-	}
-	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.Options().URURL, &b)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	resp.Body.Close()
 	return nil
 }
 
