@@ -90,6 +90,7 @@ func (opts OptionsConfiguration) ListenAddresses() []string {
 
 func (opts OptionsConfiguration) StunServers() []string {
 	var addresses []string
+rawStunLoop:
 	for _, addr := range opts.RawStunServers {
 		switch addr {
 		case "default":
@@ -102,6 +103,8 @@ func (opts OptionsConfiguration) StunServers() []string {
 			copy(defaultSecondaryAddresses, DefaultSecondaryStunServers)
 			rand.Shuffle(defaultSecondaryAddresses)
 			addresses = append(addresses, defaultSecondaryAddresses...)
+		case "disabled":
+			break rawStunLoop
 		default:
 			addresses = append(addresses, addr)
 		}
